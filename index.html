@@ -498,7 +498,7 @@
       // 写真アップロード
       if (photoBase64) {
         setProgress(30, '写真をアップロード中…');
-        const photoResult = await runScript('savePhoto', [photoBase64, photoName, photoMime]);
+        const photoResult = await runScript('savePhoto', { base64Data: photoBase64, fileName: photoName, mimeType: photoMime });
         if (!photoResult.success) {
           showResult('error', '⚠️ 写真のアップロードに失敗しました。写真なしで再送信するか、別の画像をお試しください。');
           setLoading(false);
@@ -512,7 +512,7 @@
 
       // データ保存
       const formData = { name, birthdate, prefecture, job, family, dream, targetAmount, photoUrl };
-      const result = await runScript('saveData', [formData]);
+      const result = await runScript('saveData', { formData });
 
       setProgress(100, '完了！');
 
@@ -550,19 +550,25 @@
 
   // ========== ユーティリティ ==========
 
+  // GAS WebアプリのデプロイURL
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbzmG0gwpiCMQKMWzmPIXuNgMB5oATVBzsXi3YhyIQNmBGh8wJwqPcwl2qbOcZiID7hjLA/exec';
+
   /**
-   * google.script.run をPromise化して呼び出す
-   * @param {string} funcName - GAS関数名
-   * @param {Array} args - 引数配列
-   * @returns {Promise}
+   * GASのdoPostをfetchで呼び出す
+   * Content-Type: text/plain にすることでCORSプリフライトを回避
+   * @param {string} action - 'savePhoto' or 'saveData'
+   * @param {Object} payload - 送信データ
+   * @returns {Promise<Object>}
    */
-  function runScript(funcName, args) {
-    return new Promise((resolve, reject) => {
-      let runner = google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(reject);
-      runner[funcName](...args);
+  async function runScript(action, payload) {
+    const body = JSON.stringify({ action, ...payload });
+    const res = await fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body,
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
   }
 
   function setLoading(isLoading) {
