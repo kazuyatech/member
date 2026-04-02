@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>メンバー登録フォーム</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+      width: 100%;
+      max-width: 560px;
+      overflow: hidden;
+    }
+
+    .card-header {
+      background: linear-gradient(135deg, #1a1a2e, #0f3460);
+      padding: 36px 32px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .card-header .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .card-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .card-header p {
+      margin-top: 8px;
+      font-size: 13px;
+      opacity: 0.75;
+    }
+
+    .card-body {
+      padding: 32px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+
+    label .required {
+      color: #ef4444;
+      margin-left: 4px;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #111827;
+      background: #f9fafb;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+      font-family: inherit;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: #0f3460;
+      box-shadow: 0 0 0 3px rgba(15, 52, 96, 0.12);
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 90px;
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    /* 写真アップロードエリア */
+    .upload-area {
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: #f9fafb;
+      position: relative;
+    }
+
+    .upload-area:hover,
+    .upload-area.drag-over {
+      border-color: #0f3460;
+      background: #eff6ff;
+    }
+
+    .upload-area .upload-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .upload-area p {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    .upload-area p strong {
+      color: #0f3460;
+    }
+
+    .upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+
+    #photoPreview {
+      margin-top: 12px;
+      display: none;
+      text-align: center;
+    }
+
+    #photoPreview img {
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 10px;
+      border: 2px solid #e5e7eb;
+      object-fit: cover;
+    }
+
+    #photoPreview .remove-btn {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 12px;
+      color: #ef4444;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    /* 送信ボタン */
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1a1a2e, #0f3460);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      margin-top: 8px;
+      letter-spacing: 0.05em;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      opacity: 0.88;
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    /* プログレス */
+    .progress-wrap {
+      display: none;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .progress-bar-bg {
+      background: #e5e7eb;
+      border-radius: 99px;
+      height: 8px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #1a1a2e, #0f3460);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .progress-label {
+      font-size: 13px;
+      color: #6b7280;
+    }
+
+    /* 結果表示 */
+    .result {
+      display: none;
+      margin-top: 20px;
+      padding: 16px 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .result.success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .result.error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    /* 成功画面 */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+
+    .success-screen .check {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .success-screen h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+    }
+
+    .success-screen p {
+      font-size: 14px;
+      color: #6b7280;
+      line-height: 1.7;
+    }
+
+    .success-screen .again-btn {
+      margin-top: 24px;
+      display: inline-block;
+      padding: 10px 28px;
+      background: #1a1a2e;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      border: none;
+      font-family: inherit;
+    }
+
+    .divider {
+      border: none;
+      border-top: 1px solid #f3f4f6;
+      margin: 24px 0;
+    }
+
+    @media (max-width: 480px) {
+      .card-body { padding: 24px 20px; }
+      .card-header { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-header">
+    <div class="icon">👥</div>
+    <h1>メンバー登録フォーム</h1>
+    <p>あなたの情報を登録してコミュニティに参加しよう</p>
+  </div>
+
+  <!-- 登録フォーム -->
+  <div class="card-body" id="formSection">
+    <form id="memberForm" novalidate>
+
+      <div class="form-group">
+        <label>名前<span class="required">*</span></label>
+        <input type="text" id="name" placeholder="例：山田 太郎" required>
+      </div>
+
+      <div class="form-group">
+        <label>生年月日<span class="required">*</span></label>
+        <input type="date" id="birthdate" required>
+      </div>
+
+      <div class="form-group">
+        <label>住まい（都道府県）<span class="required">*</span></label>
+        <select id="prefecture" required>
+          <option value="">選択してください</option>
+          <option>北海道</option><option>青森県</option><option>岩手県</option>
+          <option>宮城県</option><option>秋田県</option><option>山形県</option>
+          <option>福島県</option><option>茨城県</option><option>栃木県</option>
+          <option>群馬県</option><option>埼玉県</option><option>千葉県</option>
+          <option>東京都</option><option>神奈川県</option><option>新潟県</option>
+          <option>富山県</option><option>石川県</option><option>福井県</option>
+          <option>山梨県</option><option>長野県</option><option>岐阜県</option>
+          <option>静岡県</option><option>愛知県</option><option>三重県</option>
+          <option>滋賀県</option><option>京都府</option><option>大阪府</option>
+          <option>兵庫県</option><option>奈良県</option><option>和歌山県</option>
+          <option>鳥取県</option><option>島根県</option><option>岡山県</option>
+          <option>広島県</option><option>山口県</option><option>徳島県</option>
+          <option>香川県</option><option>愛媛県</option><option>高知県</option>
+          <option>福岡県</option><option>佐賀県</option><option>長崎県</option>
+          <option>熊本県</option><option>大分県</option><option>宮崎県</option>
+          <option>鹿児島県</option><option>沖縄県</option><option>海外在住</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>現在の仕事<span class="required">*</span></label>
+        <input type="text" id="job" placeholder="例：会社員（営業）、フリーランス、主婦 など">
+      </div>
+
+      <div class="form-group">
+        <label>家族構成<span class="required">*</span></label>
+        <input type="text" id="family" placeholder="例：夫婦+子ども2人、一人暮らし など">
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label>叶えたい夢や目標<span class="required">*</span></label>
+        <textarea id="dream" placeholder="例：副業で月10万円稼いで家族と旅行したい、3年以内に独立したい…"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>目標金額（月）<span class="required">*</span></label>
+        <input type="text" id="targetAmount" placeholder="例：50,000円、100万円 など">
+      </div>
+
+      <hr class="divider">
+
+      <div class="form-group">
+        <label>プロフィール写真（任意）</label>
+        <div class="upload-area" id="uploadArea">
+          <div class="upload-icon">📷</div>
+          <p><strong>クリックまたはドラッグ</strong>して画像を選択</p>
+          <p style="margin-top:4px; font-size:12px;">JPG / PNG / GIF・最大5MB</p>
+          <input type="file" id="photoInput" accept="image/*">
+        </div>
+        <div id="photoPreview">
+          <img id="previewImg" src="" alt="プレビュー">
+          <span class="remove-btn" id="removePhoto">✕ 写真を削除</span>
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" id="submitBtn">登録する →</button>
+
+      <!-- プログレス -->
+      <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar-bg">
+          <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-label" id="progressLabel">送信中…</div>
+      </div>
+
+      <!-- 結果メッセージ -->
+      <div class="result" id="resultMsg"></div>
+    </form>
+  </div>
+
+  <!-- 完了画面 -->
+  <div class="success-screen" id="successScreen">
+    <div class="check">🎉</div>
+    <h2>登録完了！</h2>
+    <p>あなたの情報が正常に登録されました。<br>コミュニティへようこそ！</p>
+    <button class="again-btn" id="againBtn">続けて登録する</button>
+  </div>
+</div>
+
+<script>
+  // ========== 写真プレビュー ==========
+  const photoInput = document.getElementById('photoInput');
+  const previewImg = document.getElementById('previewImg');
+  const photoPreview = document.getElementById('photoPreview');
+  const uploadArea = document.getElementById('uploadArea');
+  const removePhoto = document.getElementById('removePhoto');
+  let photoBase64 = null;
+  let photoMime = null;
+  let photoName = null;
+
+  photoInput.addEventListener('change', function() {
+    handleFile(this.files[0]);
+  });
+
+  uploadArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
+  });
+
+  uploadArea.addEventListener('dragleave', () => {
+    uploadArea.classList.remove('drag-over');
+  });
+
+  uploadArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  function handleFile(file) {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('画像ファイルを選択してください。');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('ファイルサイズは5MB以内にしてください。');
+      return;
+    }
+    photoMime = file.type;
+    photoName = file.name;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const result = e.target.result;
+      previewImg.src = result;
+      photoPreview.style.display = 'block';
+      // base64部分のみ抽出（data:image/xxx;base64, の後ろ）
+      photoBase64 = result.split(',')[1];
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removePhoto.addEventListener('click', function() {
+    photoBase64 = null;
+    photoMime = null;
+    photoName = null;
+    photoInput.value = '';
+    previewImg.src = '';
+    photoPreview.style.display = 'none';
+  });
+
+  // ========== フォーム送信 ==========
+  document.getElementById('memberForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // バリデーション
+    const name = document.getElementById('name').value.trim();
+    const birthdate = document.getElementById('birthdate').value;
+    const prefecture = document.getElementById('prefecture').value;
+    const job = document.getElementById('job').value.trim();
+    const family = document.getElementById('family').value.trim();
+    const dream = document.getElementById('dream').value.trim();
+    const targetAmount = document.getElementById('targetAmount').value.trim();
+
+    if (!name || !birthdate || !prefecture || !job || !family || !dream || !targetAmount) {
+      showResult('error', '⚠️ 必須項目をすべて入力してください。');
+      return;
+    }
+
+    setLoading(true);
+    setProgress(10, '送信の準備中…');
+
+    try {
+      let photoUrl = '';
+
+      // 写真アップロード
+      if (photoBase64) {
+        setProgress(30, '写真をアップロード中…');
+        const photoResult = await runScript('savePhoto', [photoBase64, photoName, photoMime]);
+        if (!photoResult.success) {
+          showResult('error', '⚠️ 写真のアップロードに失敗しました。写真なしで再送信するか、別の画像をお試しください。');
+          setLoading(false);
+          hideProgress();
+          return;
+        }
+        photoUrl = photoResult.url;
+      }
+
+      setProgress(70, 'データを保存中…');
+
+      // データ保存
+      const formData = { name, birthdate, prefecture, job, family, dream, targetAmount, photoUrl };
+      const result = await runScript('saveData', [formData]);
+
+      setProgress(100, '完了！');
+
+      if (result.success) {
+        setTimeout(() => {
+          document.getElementById('formSection').style.display = 'none';
+          document.getElementById('successScreen').style.display = 'block';
+        }, 500);
+      } else {
+        showResult('error', `⚠️ ${result.message}`);
+        setLoading(false);
+        hideProgress();
+      }
+
+    } catch (err) {
+      showResult('error', `⚠️ 予期しないエラーが発生しました。ページをリロードして再度お試しください。`);
+      setLoading(false);
+      hideProgress();
+    }
+  });
+
+  // ========== もう一度登録 ==========
+  document.getElementById('againBtn').addEventListener('click', function() {
+    document.getElementById('memberForm').reset();
+    photoBase64 = null;
+    photoMime = null;
+    photoName = null;
+    document.getElementById('photoPreview').style.display = 'none';
+    document.getElementById('resultMsg').style.display = 'none';
+    document.getElementById('progressWrap').style.display = 'none';
+    document.getElementById('successScreen').style.display = 'none';
+    document.getElementById('formSection').style.display = 'block';
+    document.getElementById('submitBtn').disabled = false;
+  });
+
+  // ========== ユーティリティ ==========
+
+  /**
+   * google.script.run をPromise化して呼び出す
+   * @param {string} funcName - GAS関数名
+   * @param {Array} args - 引数配列
+   * @returns {Promise}
+   */
+  function runScript(funcName, args) {
+    return new Promise((resolve, reject) => {
+      let runner = google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(reject);
+      runner[funcName](...args);
+    });
+  }
+
+  function setLoading(isLoading) {
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = isLoading;
+    btn.textContent = isLoading ? '送信中…' : '登録する →';
+    if (isLoading) {
+      document.getElementById('progressWrap').style.display = 'block';
+    }
+  }
+
+  function setProgress(pct, label) {
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = label;
+  }
+
+  function hideProgress() {
+    document.getElementById('progressWrap').style.display = 'none';
+  }
+
+  function showResult(type, msg) {
+    const el = document.getElementById('resultMsg');
+    el.className = `result ${type}`;
+    el.textContent = msg;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+</body>
+</html>
